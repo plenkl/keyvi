@@ -43,13 +43,13 @@ impl Iterator for KeyviMatchIterator {
     fn next(&mut self) -> Option<KeyviMatch> {
         let empty = unsafe { root::keyvi_match_iterator_empty(self.ptr_) };
         if empty {
-            return None;
+            None
         } else {
             let ret = Some(KeyviMatch::new(unsafe {
                 root::keyvi_match_iterator_dereference(self.ptr_)
             }));
             unsafe { root::keyvi_match_iterator_increment(self.ptr_) };
-            return ret;
+            ret
         }
     }
 }

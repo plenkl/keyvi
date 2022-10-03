@@ -1,17 +1,17 @@
+extern crate keyvi;
 extern crate rand;
 extern crate rayon;
 extern crate serde_json;
-
-extern crate keyvi;
+extern crate tempdir;
 
 #[cfg(test)]
 mod tests {
+    use keyvi::{dictionary, dictionary_compiler, dictionary_merger};
     use rand;
     use rand::Rng;
     use rayon::prelude::*;
-    use serde_json::Value;
-
-    use keyvi::dictionary;
+    use serde_json::{json, Value};
+    use tempdir::TempDir;
 
     #[test]
     fn dictionary_error() {
@@ -318,5 +318,165 @@ mod tests {
             .collect();
 
         assert_eq!(sequential_values, parallel_values);
+    }
+
+    #[test]
+    fn json_compiler_test() {
+        let compiler = dictionary_compiler::JsonDictionaryCompiler::new().unwrap();
+        let tmp_dir = TempDir::new("json_compiler_test").unwrap();
+        let file_path = tmp_dir
+            .path()
+            .join("test.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        let john = json!({
+            "name": "John Doe",
+            "age": 43,
+            "phones": [
+                "+44 1234567",
+                "+44 2345678"
+            ]
+        });
+
+        compiler.add("john", &john.to_string());
+        compiler.compile();
+        compiler.write_to_file(&file_path);
+
+        let dictionary = dictionary::Dictionary::new(&file_path).unwrap();
+
+        let m = dictionary.get("john");
+        assert_eq!(m.get_value(), john);
+    }
+
+    #[test]
+    fn json_dictionary_merger_test() {
+        let compiler = dictionary_compiler::JsonDictionaryCompiler::new().unwrap();
+        let tmp_dir = TempDir::new("json_merger_test").unwrap();
+        let file_path_1 = tmp_dir
+            .path()
+            .join("test_1.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        let john = json!({
+            "name": "John Doe",
+            "age": 43,
+            "phones": [
+                "+44 1234567",
+                "+44 2345678"
+            ]
+        });
+        compiler.add("john", &john.to_string());
+        compiler.compile();
+        compiler.write_to_file(&file_path_1);
+
+        let compiler = dictionary_compiler::JsonDictionaryCompiler::new().unwrap();
+        let file_path_2 = tmp_dir
+            .path()
+            .join("test_2.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        let james = json!({
+            "name": "James Poe",
+            "age": 23,
+            "phones": [
+                "+44 1111111",
+                "+44 2222222"
+            ]
+        });
+        compiler.add("james", &james.to_string());
+        compiler.compile();
+        compiler.write_to_file(&file_path_2);
+
+        let merger = dictionary_merger::JsonDictionaryMerger::new().unwrap();
+        let file_path = tmp_dir
+            .path()
+            .join("merged.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+
+        merger.add(&file_path_1);
+        merger.add(&file_path_2);
+        merger.merge(&file_path);
+        let dictionary = dictionary::Dictionary::new(&file_path).unwrap();
+
+        let m = dictionary.get("john");
+        assert_eq!(m.get_value(), john);
+        let m = dictionary.get("james");
+        assert_eq!(m.get_value(), james);
+    }
+
+    #[test]
+    fn prefix_compiler_test() {
+        let compiler = dictionary_compiler::CompletionDictionaryCompiler::new().unwrap();
+        let tmp_dir = TempDir::new("prefix_compiler_test").unwrap();
+        let file_path = tmp_dir
+            .path()
+            .join("test.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        compiler.add("john", 1);
+        compiler.add("james", 2);
+        compiler.compile();
+        compiler.write_to_file(&file_path);
+
+        let dictionary = dictionary::Dictionary::new(&file_path).unwrap();
+
+        let mut matches = dictionary.get_prefix_completions("j", 5);
+        assert_eq!(matches.next().unwrap().matched_string(), "james");
+        assert_eq!(matches.next().unwrap().matched_string(), "john");
+    }
+
+    #[test]
+    fn completion_dictionary_merger_test() {
+        let compiler = dictionary_compiler::CompletionDictionaryCompiler::new().unwrap();
+        let tmp_dir = TempDir::new("completion_merger_test").unwrap();
+        let file_path_1 = tmp_dir
+            .path()
+            .join("test_1.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        compiler.add("john", 1);
+        compiler.add("james", 2);
+        compiler.compile();
+        compiler.write_to_file(&file_path_1);
+
+        let compiler = dictionary_compiler::CompletionDictionaryCompiler::new().unwrap();
+        let file_path_2 = tmp_dir
+            .path()
+            .join("test_2.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+        compiler.add("john", 1);
+        compiler.add("james", 4);
+        compiler.add("adam", 3);
+        compiler.compile();
+        compiler.write_to_file(&file_path_2);
+
+        let merger = dictionary_merger::CompletionDictionaryMerger::new().unwrap();
+        let file_path = tmp_dir
+            .path()
+            .join("merged.kv")
+            .into_os_string()
+            .into_string()
+            .unwrap();
+
+        merger.add(&file_path_1);
+        merger.add(&file_path_2);
+        merger.merge(&file_path);
+        let dictionary = dictionary::Dictionary::new(&file_path).unwrap();
+
+        let m = dictionary.get("john");
+        assert_eq!(m.get_value(), 1);
+        let m = dictionary.get("james");
+        assert_eq!(m.get_value(), 4);
+        let m = dictionary.get("adam");
+        assert_eq!(m.get_value(), 3);
     }
 }

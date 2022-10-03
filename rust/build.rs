@@ -52,6 +52,15 @@ fn main() {
         println!("cargo:rustc-link-lib=dylib=z");
     }
 
+    if let Ok(boost_path) = env::var("STATIC_BOOST_PATH") {
+        println!("cargo:rustc-link-lib=static=boost_filesystem");
+        println!("cargo:rustc-link-lib=static=boost_system");
+        println!("cargo:rustc-link-search=native={}", boost_path);
+    } else {
+        println!("cargo:rustc-link-lib=dylib=boost_filesystem");
+        println!("cargo:rustc-link-lib=dylib=boost_system");
+    }
+
     if let Ok(snappy_path) = env::var("STATIC_SNAPPY_PATH") {
         println!("cargo:rustc-link-lib=static=snappy");
         println!("cargo:rustc-link-search=native={}", snappy_path);
@@ -94,6 +103,24 @@ fn main() {
         .allowlist_function("keyvi_match_iterator_destroy")
         .allowlist_function("keyvi_match_iterator_empty")
         .allowlist_function("keyvi_match_iterator_increment")
+        .allowlist_function("keyvi_create_json_dictionary_compiler")
+        .allowlist_function("keyvi_json_dictionary_compiler_add")
+        .allowlist_function("keyvi_json_dictionary_compiler_compile")
+        .allowlist_function("keyvi_json_dictionary_compiler_destroy")
+        .allowlist_function("keyvi_json_dictionary_compiler_write_to_file")
+        .allowlist_function("keyvi_create_json_dictionary_merger")
+        .allowlist_function("keyvi_json_dictionary_merger_add")
+        .allowlist_function("keyvi_json_dictionary_merger_merge")
+        .allowlist_function("keyvi_json_dictionary_merger_destroy")
+        .allowlist_function("keyvi_create_completion_dictionary_merger")
+        .allowlist_function("keyvi_completion_dictionary_merger_add")
+        .allowlist_function("keyvi_completion_dictionary_merger_merge")
+        .allowlist_function("keyvi_completion_dictionary_merger_destroy")
+        .allowlist_function("keyvi_create_completion_dictionary_compiler")
+        .allowlist_function("keyvi_completion_dictionary_compiler_add")
+        .allowlist_function("keyvi_completion_dictionary_compiler_compile")
+        .allowlist_function("keyvi_completion_dictionary_compiler_destroy")
+        .allowlist_function("keyvi_completion_dictionary_compiler_write_to_file")
         // Finish the builder and generate the bindings.
         .generate()
         // Unwrap the Result and panic on failure.

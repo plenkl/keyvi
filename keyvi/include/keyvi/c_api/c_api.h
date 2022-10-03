@@ -35,6 +35,10 @@ extern "C" {
 struct keyvi_dictionary;
 struct keyvi_match;
 struct keyvi_match_iterator;
+struct keyvi_json_dictionary_compiler;
+struct keyvi_json_dictionary_merger;
+struct keyvi_completion_dictionary_compiler;
+struct keyvi_completion_dictionary_merger;
 
 struct keyvi_bytes {
   const size_t data_size;
@@ -106,6 +110,57 @@ struct keyvi_match* keyvi_match_iterator_dereference(const struct keyvi_match_it
 
 void keyvi_match_iterator_increment(struct keyvi_match_iterator*);
 
+/////////////////////////////
+//// Json Dictionary Compiler
+/////////////////////////////
+
+struct keyvi_json_dictionary_compiler* keyvi_create_json_dictionary_compiler();
+
+void keyvi_json_dictionary_compiler_add(struct keyvi_json_dictionary_compiler*, const char*, const size_t, const char*, const size_t);
+
+void keyvi_json_dictionary_compiler_compile(struct keyvi_json_dictionary_compiler*);
+
+void keyvi_json_dictionary_compiler_write_to_file(struct keyvi_json_dictionary_compiler*, const char*, const size_t);
+
+void keyvi_json_dictionary_compiler_destroy(struct keyvi_json_dictionary_compiler*);
+
+/////////////////////////////
+//// Json Dictionary Merger
+/////////////////////////////
+
+struct keyvi_json_dictionary_merger* keyvi_create_json_dictionary_merger();
+
+void keyvi_json_dictionary_merger_add(struct keyvi_json_dictionary_merger*, const char*, const size_t);
+
+void keyvi_json_dictionary_merger_merge(struct keyvi_json_dictionary_merger*, const char*, const size_t);
+
+void keyvi_json_dictionary_merger_destroy(struct keyvi_json_dictionary_merger*);
+
+/////////////////////////////
+//// Completion Dictionary Merger
+/////////////////////////////
+
+struct keyvi_completion_dictionary_merger* keyvi_create_completion_dictionary_merger();
+
+void keyvi_completion_dictionary_merger_add(struct keyvi_completion_dictionary_merger*, const char*, const size_t);
+
+void keyvi_completion_dictionary_merger_merge(struct keyvi_completion_dictionary_merger*, const char*, const size_t);
+
+void keyvi_completion_dictionary_merger_destroy(struct keyvi_completion_dictionary_merger*);
+
+/////////////////////////////
+//// Completion Dictionary Compiler
+/////////////////////////////
+
+struct keyvi_completion_dictionary_compiler* keyvi_create_completion_dictionary_compiler();
+
+void keyvi_completion_dictionary_compiler_add(struct keyvi_completion_dictionary_compiler*, const char*, const size_t, const size_t);
+
+void keyvi_completion_dictionary_compiler_compile(struct keyvi_completion_dictionary_compiler*);
+
+void keyvi_completion_dictionary_compiler_write_to_file(struct keyvi_completion_dictionary_compiler*, const char*, const size_t);
+
+void keyvi_completion_dictionary_compiler_destroy(struct keyvi_completion_dictionary_compiler*);
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif
