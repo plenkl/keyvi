@@ -30,6 +30,7 @@
 #include "keyvi/dictionary/completion/multiword_completion.h"
 #include "keyvi/dictionary/completion/prefix_completion.h"
 #include "keyvi/dictionary/dictionary.h"
+#include "keyvi/dictionary/dictionary_types.h"
 
 using keyvi::dictionary::Dictionary;
 using keyvi::dictionary::dictionary_t;
@@ -37,6 +38,12 @@ using keyvi::dictionary::Match;
 using keyvi::dictionary::MatchIterator;
 using keyvi::dictionary::completion::MultiWordCompletion;
 using keyvi::dictionary::completion::PrefixCompletion;
+
+using keyvi::dictionary::JsonDictionaryCompiler;
+using keyvi::dictionary::CompletionDictionaryCompiler;
+using keyvi::dictionary::JsonDictionaryMerger;
+using keyvi::dictionary::CompletionDictionaryMerger;
+
 
 namespace {
 char* std_2_c_string(const std::string& str) {
@@ -57,6 +64,30 @@ struct keyvi_match {
   explicit keyvi_match(const Match& obj) : obj_(obj) {}
 
   Match obj_;
+};
+
+struct keyvi_json_dictionary_compiler {
+  explicit keyvi_json_dictionary_compiler(): obj_(new JsonDictionaryCompiler()){}
+
+  std::shared_ptr<JsonDictionaryCompiler> obj_;
+};
+
+struct keyvi_completion_dictionary_compiler {
+  explicit keyvi_completion_dictionary_compiler(): obj_(new CompletionDictionaryCompiler()){}
+
+  std::shared_ptr<CompletionDictionaryCompiler> obj_;
+};
+
+struct keyvi_json_dictionary_merger {
+  explicit keyvi_json_dictionary_merger(): obj_(new JsonDictionaryMerger()){}
+
+  std::shared_ptr<JsonDictionaryMerger> obj_;
+};
+
+struct keyvi_completion_dictionary_merger {
+  explicit keyvi_completion_dictionary_merger(): obj_(new CompletionDictionaryMerger()){}
+
+  std::shared_ptr<CompletionDictionaryMerger> obj_;
 };
 
 struct keyvi_match_iterator {
@@ -193,4 +224,94 @@ keyvi_match* keyvi_match_iterator_dereference(const keyvi_match_iterator* iterat
 
 void keyvi_match_iterator_increment(keyvi_match_iterator* iterator) {
   iterator->current_.operator++();
+}
+
+/////////////////////////////
+//// Json Dictionary Compiler
+/////////////////////////////
+
+struct keyvi_json_dictionary_compiler* keyvi_create_json_dictionary_compiler() {
+  return new keyvi_json_dictionary_compiler();
+}
+
+void keyvi_json_dictionary_compiler_add(struct keyvi_json_dictionary_compiler* compiler, const char* key, const size_t key_len, const char* value, const size_t value_len) {
+  compiler->obj_->Add(std::string(key, key_len), std::string(value, value_len));
+}
+
+void keyvi_json_dictionary_compiler_compile(struct keyvi_json_dictionary_compiler* compiler){
+  compiler->obj_->Compile();
+}
+
+void keyvi_json_dictionary_compiler_write_to_file(struct keyvi_json_dictionary_compiler* compiler, const char* filename, const size_t filename_len) {
+  compiler->obj_->WriteToFile(std::string(filename, filename_len));
+}
+
+void keyvi_json_dictionary_compiler_destroy(struct keyvi_json_dictionary_compiler* compiler) {
+  delete compiler;
+}
+
+/////////////////////////////
+//// Json Dictionary Merger
+/////////////////////////////
+
+struct keyvi_json_dictionary_merger* keyvi_create_json_dictionary_merger() {
+  return new keyvi_json_dictionary_merger();
+}
+
+void keyvi_json_dictionary_merger_add(struct keyvi_json_dictionary_merger* merger, const char* filename, const size_t filename_len) {
+  merger->obj_->Add(std::string(filename, filename_len));
+}
+
+void keyvi_json_dictionary_merger_merge(struct keyvi_json_dictionary_merger* merger, const char* filename, const size_t filename_len) {
+
+  merger->obj_->Merge(std::string(filename, filename_len));
+}
+
+void keyvi_json_dictionary_merger_destroy(struct keyvi_json_dictionary_merger* merger) {
+  delete merger;
+}
+
+/////////////////////////////
+//// Completion Dictionary Compiler
+/////////////////////////////
+
+struct keyvi_completion_dictionary_compiler* keyvi_create_completion_dictionary_compiler() {
+  return new keyvi_completion_dictionary_compiler();
+}
+
+void keyvi_completion_dictionary_compiler_add(struct keyvi_completion_dictionary_compiler* compiler, const char* key, const size_t key_len, size_t value) {
+  compiler->obj_->Add(std::string(key, key_len), value);
+}
+
+void keyvi_completion_dictionary_compiler_compile(struct keyvi_completion_dictionary_compiler* compiler){
+  compiler->obj_->Compile();
+}
+
+void keyvi_completion_dictionary_compiler_write_to_file(struct keyvi_completion_dictionary_compiler* compiler, const char* filename, const size_t filename_len) {
+  compiler->obj_->WriteToFile(std::string(filename, filename_len));
+}
+
+void keyvi_completion_dictionary_compiler_destroy(struct keyvi_completion_dictionary_compiler* compiler) {
+  delete compiler;
+}
+
+/////////////////////////////
+//// Completion Dictionary Merger
+/////////////////////////////
+
+struct keyvi_completion_dictionary_merger* keyvi_create_completion_dictionary_merger() {
+  return new keyvi_completion_dictionary_merger();
+}
+
+void keyvi_completion_dictionary_merger_add(struct keyvi_completion_dictionary_merger* merger, const char* filename, const size_t filename_len) {
+  merger->obj_->Add(std::string(filename, filename_len));
+}
+
+void keyvi_completion_dictionary_merger_merge(struct keyvi_completion_dictionary_merger* merger, const char* filename, const size_t filename_len) {
+
+  merger->obj_->Merge(std::string(filename, filename_len));
+}
+
+void keyvi_completion_dictionary_merger_destroy(struct keyvi_completion_dictionary_merger* merger) {
+  delete merger;
 }

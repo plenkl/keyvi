@@ -32,6 +32,8 @@ extern crate serde_json;
 
 mod bindings;
 pub mod dictionary;
+pub mod dictionary_compiler;
+pub mod dictionary_merger;
 pub mod keyvi_match;
 pub mod keyvi_match_iterator;
 pub mod keyvi_string;
